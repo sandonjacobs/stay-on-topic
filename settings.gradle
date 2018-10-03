@@ -1,0 +1,8 @@
+rootProject.name = 'stay-on-topic'
+
+include 'core'
+include 'spring'
+
+project(':core').name = 'stay-on-topic-core'
+project(':spring').name = 'stay-on-topic-spring'
+

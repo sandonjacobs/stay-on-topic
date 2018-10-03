@@ -1,0 +1,9 @@
+allprojects {
+    group 'com.github.sandonjacobs'
+    version '1.0-SNAPSHOT'
+
+    repositories {
+        mavenCentral()
+    }
+}
+
