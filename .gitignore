@@ -15,7 +15,7 @@
 *.dmg
 *.gz
 *.iso
-*.jar
+**/build/**/*.jar
 *.rar
 *.tar
 *.zip
