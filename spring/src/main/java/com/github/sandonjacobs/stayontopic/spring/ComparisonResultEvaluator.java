@@ -180,7 +180,7 @@ public class ComparisonResultEvaluator {
 
     private static final Logger LOG = LoggerFactory.getLogger(ComparisonResultEvaluator.class);
 
-    @Value("${club-topicana.fail-on-mismatch:true}")
+    @Value("${stay-on-topic.fail-on-mismatch:true}")
     private boolean failOnMismatch;
 
     private final ComparisonResult result;

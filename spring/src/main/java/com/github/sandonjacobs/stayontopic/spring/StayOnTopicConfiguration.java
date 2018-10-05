@@ -178,17 +178,17 @@ import org.springframework.context.annotation.Configuration;
 import java.util.Collection;
 
 @Configuration
-public class ClubTopicanaConfiguration {
+public class StayOnTopicConfiguration {
 
     private final TopicConfigParser configParser = new TopicConfigParser();
-    @Value("${club-topicana.bootstrap-servers}")
+    @Value("${stay-on-topic.bootstrap-servers}")
     private String bootstrapServers;
 
-    @Value("${club-topicana.config-file:club-topicana.yml}")
+    @Value("${stay-on-topic.config-file:stay-on-topic.yml}")
     private String configFile;
 
     @Bean
-    public ComparisonResult clubTopicanaComparisonResult(){
+    public ComparisonResult mkComparisonResult(){
 
         Collection<ExpectedTopicConfiguration> expectedConfig = configParser.parseTopicConfiguration(configFile);
 
@@ -205,7 +205,7 @@ public class ClubTopicanaConfiguration {
 
     @Bean
     public ComparisonResultEvaluator clubTopicanaEvaluator(){
-        return new ComparisonResultEvaluator(clubTopicanaComparisonResult());
+        return new ComparisonResultEvaluator(mkComparisonResult());
     }
 
 

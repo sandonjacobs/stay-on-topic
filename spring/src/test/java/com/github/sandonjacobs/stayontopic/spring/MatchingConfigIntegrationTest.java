@@ -210,8 +210,8 @@ public class MatchingConfigIntegrationTest {
 
         }
 
-        System.setProperty("club-topicana.bootstrap-servers", bootstrapServers);
-        System.setProperty("club-topicana.fail-on-mismatch", "true");
+        System.setProperty("stay-on-topic.bootstrap-servers", bootstrapServers);
+        System.setProperty("stay-on-topic.fail-on-mismatch", "true");
     }
 
 

@@ -212,9 +212,9 @@ public class FailingMismatchingConfigIntegrationTest {
             ac.createTopics(topics).all().get();
         }
 
-        System.setProperty("club-topicana.bootstrap-servers", bootstrapServers);
-        System.setProperty("club-topicana.fail-on-mismatch", "true");
-        System.setProperty("club-topicana.config-file", "club-topicana-mismatch.yml");
+        System.setProperty("stay-on-topic.bootstrap-servers", bootstrapServers);
+        System.setProperty("stay-on-topic.fail-on-mismatch", "true");
+        System.setProperty("stay-on-topic.config-file", "stay-on-topic-mismatch.yml");
     }
 
 
