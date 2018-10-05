@@ -177,5 +177,5 @@ import java.lang.annotation.Target;
 @Import(ClubTopicanaConfiguration.class)
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface EnableClubTopicana {
+public @interface EnableStayOnTopic {
 }
