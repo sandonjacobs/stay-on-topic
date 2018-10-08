@@ -178,7 +178,7 @@ public class TopicConfigParser {
 
     }
     /**
-     * Parses a yaml file containing Club Topicana configuration
+     * Parses a yaml file containing Stay On Topic configuration
      * @param configFileLocation The classpath-relative location of the config file
      * @return
      */

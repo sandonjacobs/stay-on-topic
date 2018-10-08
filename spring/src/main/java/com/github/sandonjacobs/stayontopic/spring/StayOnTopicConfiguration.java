@@ -188,7 +188,7 @@ public class StayOnTopicConfiguration {
     private String configFile;
 
     @Bean
-    public ComparisonResult mkComparisonResult(){
+    public ComparisonResult stayOnTopicComparisonResult(){
 
         Collection<ExpectedTopicConfiguration> expectedConfig = configParser.parseTopicConfiguration(configFile);
 
@@ -205,7 +205,7 @@ public class StayOnTopicConfiguration {
 
     @Bean
     public ComparisonResultEvaluator clubTopicanaEvaluator(){
-        return new ComparisonResultEvaluator(mkComparisonResult());
+        return new ComparisonResultEvaluator(stayOnTopicComparisonResult());
     }
 
 

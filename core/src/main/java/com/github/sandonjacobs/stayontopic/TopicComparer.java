@@ -215,9 +215,6 @@ public class TopicComparer {
                         }
                     }).collect(toMap(i -> i.name(), i -> i));
 
-
-
-
             expectedTopicConfiguration.stream()
 
                     .filter(exp -> topicDescriptions.containsKey(exp.getTopicName()))
