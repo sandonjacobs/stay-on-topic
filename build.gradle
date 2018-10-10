@@ -1,9 +1,15 @@
 
 plugins {
     id 'maven-publish'
-    id "com.github.hierynomus.license" version "0.14.0" apply(false)
+    id 'com.github.hierynomus.license' version '0.14.0' apply(false)
+    id 'pl.allegro.tech.build.axion-release' version '1.9.3'
 }
 
+scmVersion {
+    tag {
+        prefix = 'stay-on-topic'
+    }
+}
 
 allprojects {
     group 'com.github.sandonjacobs'
@@ -20,9 +26,7 @@ allprojects {
         include "**/*.java"
     }
 
-    buildscript {
-        
-    }
+    project.version = scmVersion.version
 
 }
 
