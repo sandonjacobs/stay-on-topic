@@ -12,7 +12,7 @@ scmVersion {
 
 allprojects {
     group 'com.github.sandonjacobs'
-    version '1.0'
+    version '1.0.1-SNAPSHOT'
 
     repositories {
         mavenCentral()
