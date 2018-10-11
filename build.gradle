@@ -1,9 +1,6 @@
-import sun.security.pkcs.PKCS8Key
-
 plugins {
     id 'maven-publish'
     id 'com.github.hierynomus.license' version '0.14.0' apply(false)
-    id 'pl.allegro.tech.build.axion-release' version '1.9.3'
 }
 
 allprojects {
@@ -11,15 +8,17 @@ allprojects {
     buildscript {
         repositories {
             mavenLocal()
+            maven { url "https://jitpack.io" }
         }
     }
 
     group 'com.github.sandonjacobs'
-    version '1.0.0'
+    version '1.0.0-SNAPSHOT'
 
     repositories {
         mavenCentral()
         mavenLocal()
+        maven { url "https://jitpack.io" }
     }
 
     apply plugin: "com.github.hierynomus.license"
@@ -79,18 +78,6 @@ subprojects {
             }
         }
     }
-
-    scmVersion {
-        tag {
-            initialVersion = { t, p ->
-                project.version
-            }
-            prefix = 'stay-on-topic'
-        }
-    }
-
-    project.version = scmVersion.version
-
 }
 
 
