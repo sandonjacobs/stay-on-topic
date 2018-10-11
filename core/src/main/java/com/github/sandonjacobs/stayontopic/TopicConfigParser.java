@@ -180,7 +180,6 @@ public class TopicConfigParser {
     /**
      * Parses a yaml file containing Stay On Topic configuration
      * @param configFileLocation The classpath-relative location of the config file
-     * @return
      */
     public Collection<ExpectedTopicConfiguration> parseTopicConfiguration(String configFileLocation) {
         List<Map<String, Object>> map = new org.yaml.snakeyaml.Yaml().load(this.getClass().getClassLoader().getResourceAsStream(configFileLocation));
@@ -206,8 +205,7 @@ public class TopicConfigParser {
                 });
 
             }
-
-
+            
             return build.build();
 
         }).collect(Collectors.toList());

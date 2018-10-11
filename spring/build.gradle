@@ -1,8 +1,3 @@
-plugins {
-    id 'java'
-    id 'maven-publish'
-}
-
 dependencies {
     compile project(':stay-on-topic-core')
     compile 'org.springframework:spring-context:5.1.0.RELEASE'
@@ -10,26 +5,4 @@ dependencies {
     testCompile 'junit:junit:4.12'
     testCompile 'org.apache.kafka:kafka-streams:0.11.0.3:test'
     testCompile 'org.springframework.boot:spring-boot-starter-test:1.5.8.RELEASE'
-}
-
-task sourcesJar(type: Jar) {
-    from sourceSets.main.allJava
-    classifier = 'sources'
-}
-
-task javadocJar(type: Jar) {
-    from javadoc
-    classifier = 'javadoc'
-}
-
-publishing {
-    publications {
-        MyPublication(MavenPublication) {
-            from components.java
-            artifact sourcesJar
-            groupId project.group
-            artifactId project.name
-            version project.version
-        }
-    }
 }
