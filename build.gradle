@@ -11,11 +11,19 @@ scmVersion {
 }
 
 allprojects {
+
+    buildscript {
+        repositories {
+            mavenLocal()
+        }
+    }
+
     group 'com.github.sandonjacobs'
-    version '1.0.1-SNAPSHOT'
+    version '1.0.0-SNAPSHOT'
 
     repositories {
         mavenCentral()
+        mavenLocal()
     }
 
     apply plugin: "com.github.hierynomus.license"
@@ -24,13 +32,12 @@ allprojects {
         header = file('../license.txt')
         include "**/*.java"
     }
-
-    project.version = scmVersion.version
 }
 
 subprojects {
     apply plugin: 'java'
     apply plugin: 'maven'
+    apply plugin: 'maven-publish'
 
     sourceCompatibility = 1.8 // java 8
     targetCompatibility = 1.8
@@ -48,6 +55,33 @@ subprojects {
     artifacts {
         archives sourcesJar
         archives javadocJar
+    }
+
+    publishing {
+        publications {
+            maven(MavenPublication) {
+                groupId = "com.github.sandonjacobs"
+                artifactId = project.name
+                version = project.version
+
+                from components.java
+
+                pom {
+                    developers {
+                        developer {
+                            name = "Sandon Jacobs"
+                            id = "sandonjacobs"
+                            email = "sandon.jacobs@gmail.com"
+                        }
+                    }
+                    scm {
+                        connection = "scm:git:git://github.com.com/sandonjacobs/stay-on-topic.git"
+                        developerConnection = "scm:git:git://github.com.com/sandonjacobs/stay-on-topic.git"
+                        url = "http://github.com.com/sandonjacobs/stay-on-topic"
+                    }
+                }
+            }
+        }
     }
 }
 
