@@ -1,8 +1,8 @@
-
 plugins {
     id 'maven-publish'
     id 'com.github.hierynomus.license' version '0.14.0' apply(false)
     id 'pl.allegro.tech.build.axion-release' version '1.9.3'
+    id "com.jfrog.bintray" version "1.8.4" apply(false)
 }
 
 scmVersion {
@@ -20,6 +20,7 @@ allprojects {
     }
 
     apply plugin: "com.github.hierynomus.license"
+    apply plugin: 'com.jfrog.bintray'
 
     license {
         header = file('../license.txt')
@@ -28,5 +29,20 @@ allprojects {
 
     project.version = scmVersion.version
 
+    bintray {
+        user = System.getenv('BINTRAY_USER')
+        key = System.getenv('BINTRAY_KEY')
+        pkg {
+            repo = 'generic'
+            name = project.name
+            userOrg = 'sandonjacobs'
+            licenses = ['Apache-2.0']
+            vcsUrl = 'https://github.com/sandonjacobs/stay-on-topic.git'
+            version {
+                name = "${project.version}"
+                released = new java.util.Date()
+            }
+        }
+    }
 }
 
