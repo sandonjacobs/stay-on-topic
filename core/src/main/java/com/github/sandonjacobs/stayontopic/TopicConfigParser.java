@@ -205,7 +205,7 @@ public class TopicConfigParser {
                 });
 
             }
-            
+
             return build.build();
 
         }).collect(Collectors.toList());
