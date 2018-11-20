@@ -109,13 +109,14 @@
                 <artifactId>license-maven-plugin</artifactId>
                 <version>3.0</version>
                 <configuration>
-                    <header>licence.txt</header>
+                    <header>license.txt</header>
                     <properties>
                         <owner>Sandon Jacobs</owner>
                         <email>sandon.jacobs@gmail.com</email>
                     </properties>
                     <excludes>
                         <exclude>**/README*</exclude>
+                        <exclude>**/pom.xml</exclude>
                         <exclude>src/test/resources/**</exclude>
                         <exclude>src/main/resources/**</exclude>
                     </excludes>
