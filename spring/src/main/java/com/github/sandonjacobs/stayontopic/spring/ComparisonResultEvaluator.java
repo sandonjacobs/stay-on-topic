@@ -167,8 +167,8 @@
  */
 package com.github.sandonjacobs.stayontopic.spring;
 
-import com.github.sandonjacobs.stayontopic.ComparisonResult;
-import com.github.sandonjacobs.stayontopic.MismatchedTopicConfigException;
+import com.github.sandonjacobs.stayontopic.core.ComparisonResult;
+import com.github.sandonjacobs.stayontopic.core.MismatchedTopicConfigException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;

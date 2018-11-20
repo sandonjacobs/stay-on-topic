@@ -167,10 +167,10 @@
  */
 package com.github.sandonjacobs.stayontopic.spring;
 
-import com.github.sandonjacobs.stayontopic.ComparisonResult;
-import com.github.sandonjacobs.stayontopic.ExpectedTopicConfiguration;
-import com.github.sandonjacobs.stayontopic.TopicComparer;
-import com.github.sandonjacobs.stayontopic.TopicConfigParser;
+import com.github.sandonjacobs.stayontopic.core.ComparisonResult;
+import com.github.sandonjacobs.stayontopic.core.ExpectedTopicConfiguration;
+import com.github.sandonjacobs.stayontopic.core.TopicComparer;
+import com.github.sandonjacobs.stayontopic.core.TopicConfigParser;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

@@ -165,62 +165,56 @@
  * permanent authorization for you to choose that version for the
  * Library.
  */
-package com.github.sandonjacobs.stayontopic;
+package com.github.sandonjacobs.stayontopic.core;
 
-public interface ReplicationFactor {
-    boolean isSpecified();
+import com.github.sandonjacobs.stayontopic.core.ComparisonResult;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
-    int count();
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-    static ReplicationFactor of(int count){
+/**
+ * Created by ftr on 17.11.17.
+ */
+public class ComparisonResultTest {
 
-        return new SpecifiedCount(count);
 
+    @Test
+    @DisplayName("When there are no errors set, the result is ok")
+    public void ok(){
+        ComparisonResult comparisonResult = new ComparisonResult.ComparisonResultBuilder().build();
+        assertTrue(comparisonResult.ok());
     }
 
-    static ReplicationFactor ignore(){
-        return new UnspecifiedCount();
+    @Test
+    @DisplayName("When there are is a missing topic, the result is not ok")
+    public void missing_topic(){
+        ComparisonResult comparisonResult = new ComparisonResult.ComparisonResultBuilder().addMissingTopic("hurz").build();
+        assertFalse(comparisonResult.ok());
     }
 
+    @Test
+    @DisplayName("When there are is a wrong replication factor, the result is not ok")
+    public void wrong_rf(){
 
-    class SpecifiedCount implements ReplicationFactor {
-
-        private final int count;
-
-        private SpecifiedCount(int count) {
-            if(count <= 0){
-                throw new IllegalArgumentException("Count must be larger than 0");
-            }
-            this.count = count;
-        }
-
-        @Override
-        public boolean isSpecified() {
-            return true;
-        }
-
-        @Override
-        public int count() {
-            return count;
-        }
+        ComparisonResult comparisonResult = new ComparisonResult.ComparisonResultBuilder().addMismatchingReplicationFactor("hurz", 1, 2).build();
+        assertFalse(comparisonResult.ok());
     }
 
-    class UnspecifiedCount implements ReplicationFactor {
+    @Test
+    @DisplayName("When there are is a wrong partition count, the result is not ok")
+    public void wrong_broker_count(){
 
+        ComparisonResult comparisonResult = new ComparisonResult.ComparisonResultBuilder().addMismatchingPartitionCount("hurz", 1, 2).build();
+        assertFalse(comparisonResult.ok());
+    }
 
-        private UnspecifiedCount(){
+    @Test
+    @DisplayName("When there are is a wrong configuration, the result is not ok")
+    public void wrong_config(){
 
-        }
-
-
-        @Override
-        public boolean isSpecified() {
-            return false;
-        }
-
-        @Override
-        public int count() {
-            throw new IllegalStateException("Must not call count() on an unspecified PartitionCount");
-        }
+        ComparisonResult comparisonResult = new ComparisonResult.ComparisonResultBuilder().addMismatchingConfiguration("hurz", "burz", "2", "3").build();
+        assertFalse(comparisonResult.ok());
     }
 }

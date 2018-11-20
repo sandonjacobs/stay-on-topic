@@ -167,7 +167,7 @@
  */
 package com.github.sandonjacobs.stayontopic.spring;
 
-import com.github.sandonjacobs.stayontopic.tests.EmbeddedKafka;
+import com.github.sandonjacobs.stayontopic.core.EmbeddedKafka;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.admin.NewTopic;

@@ -167,7 +167,8 @@
  */
 package com.github.sandonjacobs.stayontopic.spring;
 
-import com.github.sandonjacobs.stayontopic.tests.EmbeddedKafka;
+import com.github.sandonjacobs.stayontopic.core.EmbeddedKafka;
+import com.github.sandonjacobs.stayontopic.core.MismatchedTopicConfigException;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.admin.NewTopic;
@@ -175,7 +176,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.test.context.junit4.SpringRunner;
-import com.github.sandonjacobs.stayontopic.MismatchedTopicConfigException;
 
 import java.util.*;
 

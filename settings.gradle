@@ -1,9 +1,0 @@
-rootProject.name = 'stay-on-topic'
-
-include 'test-core'
-include 'core'
-include 'spring'
-
-project(':core').name = 'stay-on-topic-core'
-project(':spring').name = 'stay-on-topic-spring'
-

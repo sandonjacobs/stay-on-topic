@@ -165,7 +165,7 @@
  * permanent authorization for you to choose that version for the
  * Library.
  */
-package com.github.sandonjacobs.stayontopic;
+package com.github.sandonjacobs.stayontopic.core;
 
 import java.util.Collections;
 import java.util.HashMap;

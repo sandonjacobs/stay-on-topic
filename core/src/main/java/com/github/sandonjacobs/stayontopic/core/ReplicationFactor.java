@@ -165,26 +165,25 @@
  * permanent authorization for you to choose that version for the
  * Library.
  */
-package com.github.sandonjacobs.stayontopic;
+package com.github.sandonjacobs.stayontopic.core;
 
-public interface PartitionCount {
+public interface ReplicationFactor {
     boolean isSpecified();
 
     int count();
 
-
-    static PartitionCount of(int count){
+    static ReplicationFactor of(int count){
 
         return new SpecifiedCount(count);
 
     }
 
-    static PartitionCount ignore(){
+    static ReplicationFactor ignore(){
         return new UnspecifiedCount();
     }
 
 
-    class SpecifiedCount implements PartitionCount{
+    class SpecifiedCount implements ReplicationFactor {
 
         private final int count;
 
@@ -204,11 +203,9 @@ public interface PartitionCount {
         public int count() {
             return count;
         }
-
-
     }
 
-    class UnspecifiedCount implements PartitionCount{
+    class UnspecifiedCount implements ReplicationFactor {
 
 
         private UnspecifiedCount(){

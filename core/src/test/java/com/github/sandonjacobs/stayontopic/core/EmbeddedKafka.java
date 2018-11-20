@@ -165,94 +165,31 @@
  * permanent authorization for you to choose that version for the
  * Library.
  */
-package com.github.sandonjacobs.stayontopic;
+package com.github.sandonjacobs.stayontopic.core;
 
-import com.github.sandonjacobs.stayontopic.tests.EmbeddedKafka;
-import org.apache.kafka.clients.admin.AdminClient;
-import org.apache.kafka.clients.admin.AdminClientConfig;
-import org.apache.kafka.clients.admin.NewTopic;
-import org.junit.jupiter.api.*;
+import org.apache.kafka.streams.integration.utils.EmbeddedKafkaCluster;
 
-import java.util.Collections;
 import java.util.Properties;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.IsEqual.equalTo;
-import static org.junit.jupiter.api.Assertions.*;
-
-public class MultiBrokerIntegrationTest {
-
-    private static String bootstrapServers = null;
-    private static EmbeddedKafka embeddedKafkaCluster = null;
-
-    private TopicComparer unitUnderTest;
-
-
-    @BeforeAll
-    public static void initKafka() throws Exception{
-        embeddedKafkaCluster = new EmbeddedKafka(2);
-
-        embeddedKafkaCluster.start();
-        bootstrapServers = embeddedKafkaCluster.bootstrapServers();
-
-        Properties props = new Properties();
-        props.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-        try(AdminClient ac = AdminClient.create(props)){
-
-
-            NewTopic testTopic = new NewTopic("test_topic", 1, (short) 2);
-            ac.createTopics(Collections.singleton(testTopic)).all().get();
-
-        }
+public class EmbeddedKafka extends EmbeddedKafkaCluster {
+    public EmbeddedKafka(int numBrokers) {
+        super(numBrokers);
     }
 
-    @BeforeEach
-    public void setUp(){
-        unitUnderTest = new TopicComparer(bootstrapServers);
+    public EmbeddedKafka(int numBrokers, Properties brokerConfig) {
+        super(numBrokers, brokerConfig);
+    }
+
+    public EmbeddedKafka(int numBrokers, Properties brokerConfig, long mockTimeMillisStart) {
+        super(numBrokers, brokerConfig, mockTimeMillisStart);
+    }
+
+    public EmbeddedKafka(int numBrokers, Properties brokerConfig, long mockTimeMillisStart, long mockTimeNanoStart) {
+        super(numBrokers, brokerConfig, mockTimeMillisStart, mockTimeNanoStart);
     }
 
 
-
-    @Nested
-    class ReplicationFactor{
-        @Test
-        public void rf_fits(){
-
-            ExpectedTopicConfiguration expected = new ExpectedTopicConfiguration.ExpectedTopicConfigurationBuilder("test_topic").withReplicationFactor(2).build();
-
-            ComparisonResult result = unitUnderTest.compare(Collections.singleton(expected));
-
-            assertTrue(result.ok());
-
-
-        }
-
-        @Test
-        public void rf_fits_not(){
-
-            ExpectedTopicConfiguration expected = new ExpectedTopicConfiguration.ExpectedTopicConfigurationBuilder("test_topic").withReplicationFactor(1).build();
-
-            ComparisonResult result = unitUnderTest.compare(Collections.singleton(expected));
-
-            assertAll(() -> assertFalse(result.ok()),
-                    () -> assertThat(result.getMismatchingReplicationFactor().get("test_topic").getExpectedValue(), is(equalTo(1))),
-                    () -> assertThat(result.getMismatchingReplicationFactor().get("test_topic").getActualValue(), is(equalTo(2))));
-
-
-        }
-
-
+    public void stop(){
+        after();
     }
-
-
-
-
-    @AfterAll
-    public static void destroyKafka(){
-
-        embeddedKafkaCluster.stop();
-    }
-
-
 }

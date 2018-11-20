@@ -165,20 +165,10 @@
  * permanent authorization for you to choose that version for the
  * Library.
  */
-package com.github.sandonjacobs.stayontopic;
+package com.github.sandonjacobs.stayontopic.core;
 
-
-public class MismatchedTopicConfigException extends RuntimeException {
-
-
-    private final ComparisonResult result;
-
-    public MismatchedTopicConfigException(ComparisonResult result){
-        super("Topic configuration does not match specification: " +result.toString());
-        this.result = result;
-    }
-
-    public ComparisonResult getResult() {
-        return result;
+public class EvaluationException extends RuntimeException {
+    public EvaluationException(String message, Throwable cause) {
+        super(message, cause);
     }
 }
