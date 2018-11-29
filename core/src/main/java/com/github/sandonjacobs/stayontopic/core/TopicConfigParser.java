@@ -183,17 +183,15 @@ public class TopicConfigParser {
      */
     public Collection<ExpectedTopicConfiguration> parseTopicConfiguration(String configFileLocation) {
         List<Map<String, Object>> map = new org.yaml.snakeyaml.Yaml().load(this.getClass().getClassLoader().getResourceAsStream(configFileLocation));
-
-
         return map.stream().map(entry -> {
-            ExpectedTopicConfiguration.ExpectedTopicConfigurationBuilder build = new ExpectedTopicConfiguration.ExpectedTopicConfigurationBuilder((String) entry.get("name"));
+            ExpectedTopicConfiguration.ExpectedTopicConfigurationBuilder builder = ExpectedTopicConfiguration.builder().topicName((String) entry.get("name"));
 
             if (entry.get("replication-factor") != null) {
-                build.withReplicationFactor((Integer) entry.get("replication-factor"));
+                builder.replicationFactor(ReplicationFactor.of((Integer) entry.get("replication-factor")));
             }
 
             if (entry.get("partition-count") != null) {
-                build.withReplicationFactor((Integer) entry.get("partition-count"));
+                builder.partitions(PartitionCount.of((Integer) entry.get("partition-count")));
             }
 
             if (entry.get("config") != null) {
@@ -201,13 +199,10 @@ public class TopicConfigParser {
 
                 config.stream().forEach(configMap -> {
                     Map<String, String> stringifiedConfig = configMap.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> String.valueOf(e.getValue())));
-                    build.withConfig(stringifiedConfig);
+                    builder.props(stringifiedConfig);
                 });
-
             }
-
-            return build.build();
-
+            return builder.build();
         }).collect(Collectors.toList());
     }
 }

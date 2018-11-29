@@ -222,7 +222,11 @@ public class MultiBrokerIntegrationTest {
         @Test
         public void rf_fits(){
 
-            ExpectedTopicConfiguration expected = new ExpectedTopicConfiguration.ExpectedTopicConfigurationBuilder("test_topic").withReplicationFactor(2).build();
+            ExpectedTopicConfiguration expected =
+                    ExpectedTopicConfiguration.builder()
+                            .topicName("test_topic")
+                            .replicationFactor(com.github.sandonjacobs.stayontopic.core.ReplicationFactor.of(2))
+                            .build();
 
             ComparisonResult result = unitUnderTest.compare(Collections.singleton(expected));
 
@@ -234,7 +238,11 @@ public class MultiBrokerIntegrationTest {
         @Test
         public void rf_fits_not(){
 
-            ExpectedTopicConfiguration expected = new ExpectedTopicConfiguration.ExpectedTopicConfigurationBuilder("test_topic").withReplicationFactor(1).build();
+            ExpectedTopicConfiguration expected =
+                    ExpectedTopicConfiguration.builder()
+                            .topicName("test_topic")
+                            .replicationFactor(com.github.sandonjacobs.stayontopic.core.ReplicationFactor.of(1))
+                            .build();
 
             ComparisonResult result = unitUnderTest.compare(Collections.singleton(expected));
 
@@ -244,18 +252,12 @@ public class MultiBrokerIntegrationTest {
 
 
         }
-
-
     }
-
-
-
 
     @AfterAll
     public static void destroyKafka(){
 
         embeddedKafkaCluster.stop();
     }
-
 
 }

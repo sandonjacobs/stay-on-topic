@@ -189,16 +189,12 @@ public class StayOnTopicConfiguration {
 
     @Bean
     public ComparisonResult stayOnTopicComparisonResult(){
-
         Collection<ExpectedTopicConfiguration> expectedConfig = configParser.parseTopicConfiguration(configFile);
-
         ComparisonResult result = new TopicComparer(bootstrapServers).compare(expectedConfig);
         return result;
     }
 
     private Collection<ExpectedTopicConfiguration> parseTopicConfiguration(String configFileLocation) {
-
-
         return configParser.parseTopicConfiguration(configFileLocation);
     }
 

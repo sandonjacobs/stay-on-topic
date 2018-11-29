@@ -177,6 +177,8 @@ import org.apache.kafka.clients.admin.NewTopic;
 import org.junit.jupiter.api.*;
 
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -201,12 +203,7 @@ public class IntegrationTest {
         Properties props = new Properties();
         props.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         try(AdminClient ac = AdminClient.create(props)){
-
-
             NewTopic testTopic = new NewTopic("test_topic", 1, (short) 1);
-
-
-
             ac.createTopics(Collections.singleton(testTopic)).all().get();
         }
     }
@@ -221,19 +218,22 @@ public class IntegrationTest {
         @Test
         public void topic_exists(){
 
-            ExpectedTopicConfiguration expected = new ExpectedTopicConfiguration.ExpectedTopicConfigurationBuilder("test_topic").build();
+            ExpectedTopicConfiguration expected =
+                    ExpectedTopicConfiguration.builder()
+                            .topicName("test_topic")
+                            .build();
 
             ComparisonResult result = unitUnderTest.compare(Collections.singleton(expected));
-
             assertTrue(result.ok());
-
-
         }
 
         @Test
         public void topic_not_exists(){
 
-            ExpectedTopicConfiguration expected = new ExpectedTopicConfiguration.ExpectedTopicConfigurationBuilder("nonexisting_topic").build();
+            ExpectedTopicConfiguration expected =
+                    ExpectedTopicConfiguration.builder()
+                            .topicName("nonexisting_topic")
+                            .build();
 
             ComparisonResult result = unitUnderTest.compare(Collections.singleton(expected));
 
@@ -247,7 +247,11 @@ public class IntegrationTest {
         @Test
         public void rf_fits(){
 
-            ExpectedTopicConfiguration expected = new ExpectedTopicConfiguration.ExpectedTopicConfigurationBuilder("test_topic").withReplicationFactor(1).build();
+            ExpectedTopicConfiguration expected =
+                    ExpectedTopicConfiguration.builder()
+                            .topicName("test_topic")
+                            .replicationFactor(com.github.sandonjacobs.stayontopic.core.ReplicationFactor.of(1))
+                            .build();
 
             ComparisonResult result = unitUnderTest.compare(Collections.singleton(expected));
 
@@ -259,18 +263,18 @@ public class IntegrationTest {
         @Test
         public void rf_fits_not(){
 
-            ExpectedTopicConfiguration expected = new ExpectedTopicConfiguration.ExpectedTopicConfigurationBuilder("test_topic").withReplicationFactor(2).build();
+            ExpectedTopicConfiguration expected =
+                    ExpectedTopicConfiguration.builder()
+                            .topicName("test_topic")
+                            .replicationFactor(com.github.sandonjacobs.stayontopic.core.ReplicationFactor.of(2))
+                            .build();
 
             ComparisonResult result = unitUnderTest.compare(Collections.singleton(expected));
 
             assertAll(() -> assertFalse(result.ok()),
                     () -> assertThat(result.getMismatchingReplicationFactor().get("test_topic").getExpectedValue(), is(equalTo(2))),
                     () -> assertThat(result.getMismatchingReplicationFactor().get("test_topic").getActualValue(), is(equalTo(1))));
-
-
         }
-
-
     }
 
     @Nested
@@ -278,7 +282,11 @@ public class IntegrationTest {
         @Test
         public void count_fits(){
 
-            ExpectedTopicConfiguration expected = new ExpectedTopicConfiguration.ExpectedTopicConfigurationBuilder("test_topic").withPartitionCount(1).build();
+            ExpectedTopicConfiguration expected =
+                    ExpectedTopicConfiguration.builder()
+                            .topicName("test_topic")
+                            .partitions(com.github.sandonjacobs.stayontopic.core.PartitionCount.of(1))
+                            .build();
 
             ComparisonResult result = unitUnderTest.compare(Collections.singleton(expected));
 
@@ -290,7 +298,11 @@ public class IntegrationTest {
         @Test
         public void count_fits_not(){
 
-            ExpectedTopicConfiguration expected = new ExpectedTopicConfiguration.ExpectedTopicConfigurationBuilder("test_topic").withPartitionCount(2).build();
+            ExpectedTopicConfiguration expected =
+                    ExpectedTopicConfiguration.builder()
+                            .topicName("test_topic")
+                            .partitions(com.github.sandonjacobs.stayontopic.core.PartitionCount.of(2))
+                            .build();
 
             ComparisonResult result = unitUnderTest.compare(Collections.singleton(expected));
 
@@ -309,31 +321,48 @@ public class IntegrationTest {
         @Test
         public void single_config_fits(){
 
-            ExpectedTopicConfiguration expected = new ExpectedTopicConfiguration.ExpectedTopicConfigurationBuilder("test_topic").withConfig("cleanup.policy", "delete").build();
+            Map<String, String> props = new HashMap();
+            props.put("cleanup.policy", "delete");
+
+            ExpectedTopicConfiguration expected =
+                    ExpectedTopicConfiguration.builder()
+                            .topicName("test_topic")
+                            .props(props)
+                            .build();
 
             ComparisonResult result = unitUnderTest.compare(Collections.singleton(expected));
-
             assertTrue(result.ok());
-
-
         }
 
         @Test
         public void multi_config_fits(){
 
-            ExpectedTopicConfiguration expected = new ExpectedTopicConfiguration.ExpectedTopicConfigurationBuilder("test_topic").withConfig("compression.type", "producer").withConfig("cleanup.policy", "delete").build();
+            Map<String, String> props = new HashMap();
+            props.put("cleanup.policy", "delete");
+            props.put("compression.type", "producer");
+
+            ExpectedTopicConfiguration expected =
+                    ExpectedTopicConfiguration.builder()
+                            .topicName("test_topic")
+                            .props(props)
+                            .build();
 
             ComparisonResult result = unitUnderTest.compare(Collections.singleton(expected));
-
             assertTrue(result.ok());
-
-
         }
 
         @Test
         public void multi_config_fits_not(){
 
-            ExpectedTopicConfiguration expected = new ExpectedTopicConfiguration.ExpectedTopicConfigurationBuilder("test_topic").withConfig("compression.type", "gzip").withConfig("cleanup.policy", "compact").build();
+            Map<String, String> props = new HashMap();
+            props.put("cleanup.policy", "compact");
+            props.put("compression.type", "gzip");
+
+            ExpectedTopicConfiguration expected =
+                    ExpectedTopicConfiguration.builder()
+                            .topicName("test_topic")
+                            .props(props)
+                            .build();
 
             ComparisonResult result = unitUnderTest.compare(Collections.singleton(expected));
 
@@ -343,16 +372,20 @@ public class IntegrationTest {
                     () -> assertThat(result.getMismatchingConfiguration().get("test_topic").stream().filter(comp -> comp.getProperty().equals("cleanup.policy")).findFirst().get().getActualValue(), is(equalTo("delete"))),
                     () -> assertThat(result.getMismatchingConfiguration().get("test_topic").stream().filter(comp -> comp.getProperty().equals("compression.type")).findFirst().get().getExpectedValue(), is(equalTo("gzip"))),
                     () -> assertThat(result.getMismatchingConfiguration().get("test_topic").stream().filter(comp -> comp.getProperty().equals("compression.type")).findFirst().get().getActualValue(), is(equalTo("producer")))
-
             );
-
-
         }
 
         @Test
         public void unknown_config(){
 
-            ExpectedTopicConfiguration expected = new ExpectedTopicConfiguration.ExpectedTopicConfigurationBuilder("test_topic").withConfig("unknown", "config").build();
+            Map<String, String> props = new HashMap();
+            props.put("unknown", "config");
+
+            ExpectedTopicConfiguration expected =
+                    ExpectedTopicConfiguration.builder()
+                            .topicName("test_topic")
+                            .props(props)
+                            .build();
 
             ComparisonResult result = unitUnderTest.compare(Collections.singleton(expected));
 
@@ -362,11 +395,7 @@ public class IntegrationTest {
                     () -> assertThat(result.getMismatchingConfiguration().get("test_topic").stream().findFirst().get().getActualValue(), is(equalTo(null)))
 
             );
-
-
         }
-
-
     }
 
 
