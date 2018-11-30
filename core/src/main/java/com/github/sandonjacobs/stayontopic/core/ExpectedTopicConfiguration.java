@@ -179,7 +179,6 @@ import java.util.Map;
 @AllArgsConstructor
 public class ExpectedTopicConfiguration {
     private String topicName;
-    @Builder.Default private Boolean createIfNotExists = false;
     @Builder.Default private PartitionCount partitions = PartitionCount.ignore();
     @Builder.Default private ReplicationFactor replicationFactor = ReplicationFactor.ignore();
     @Builder.Default private Map<String, String> props = new HashMap<>();
