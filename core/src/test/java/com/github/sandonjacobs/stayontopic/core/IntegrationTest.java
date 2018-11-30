@@ -238,7 +238,6 @@ public class IntegrationTest {
             ComparisonResult result = unitUnderTest.compare(Collections.singleton(expected));
 
             assertFalse(result.ok());
-
         }
     }
 
@@ -256,8 +255,6 @@ public class IntegrationTest {
             ComparisonResult result = unitUnderTest.compare(Collections.singleton(expected));
 
             assertTrue(result.ok());
-
-
         }
 
         @Test
@@ -291,8 +288,6 @@ public class IntegrationTest {
             ComparisonResult result = unitUnderTest.compare(Collections.singleton(expected));
 
             assertTrue(result.ok());
-
-
         }
 
         @Test
@@ -309,11 +304,7 @@ public class IntegrationTest {
             assertAll(() -> assertFalse(result.ok()),
                     () -> assertThat(result.getMismatchingPartitionCount().get("test_topic").getExpectedValue(), is(equalTo(2))),
                     () -> assertThat(result.getMismatchingPartitionCount().get("test_topic").getActualValue(), is(equalTo(1))));
-
-
         }
-
-
     }
 
     @Nested
@@ -398,17 +389,10 @@ public class IntegrationTest {
         }
     }
 
-
-
-
-
-
-
     @AfterAll
     public static void destroyKafka(){
 
         embeddedKafkaCluster.stop();
     }
-
 
 }

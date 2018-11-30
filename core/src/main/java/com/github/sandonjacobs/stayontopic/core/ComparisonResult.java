@@ -263,14 +263,11 @@ public class ComparisonResult {
         }
     }
 
-
     public static class ComparisonResultBuilder {
         private final Set<String> missingTopics = new HashSet<>();
         private final Map<String, ComparisonResult.Comparison<Integer>> mismatchingReplicationFactor = new HashMap<>();
         private final Map<String, ComparisonResult.Comparison<Integer>> mismatchingPartitionCount = new HashMap<>();
         private final Map<String, Collection<ComparisonResult.Comparison<String>>> mismatchingConfiguration = new HashMap<>();
-
-
 
         public ComparisonResultBuilder addMissingTopic(String missingTopic) {
             missingTopics.add(missingTopic);
@@ -295,15 +292,9 @@ public class ComparisonResult {
             return this;
         }
 
-
-
-
-
         public ComparisonResult build() {
             return new ComparisonResult(missingTopics, mismatchingReplicationFactor, mismatchingPartitionCount, mismatchingConfiguration);
         }
     }
-
-
 }
 
