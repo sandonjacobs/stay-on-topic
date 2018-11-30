@@ -168,16 +168,21 @@
 package com.github.sandonjacobs.stayontopic.core;
 
 import org.apache.kafka.clients.admin.*;
+import org.apache.kafka.common.TopicPartitionInfo;
 import org.apache.kafka.common.config.ConfigResource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
-
 public class TopicComparer {
+
+    static Logger logger = LoggerFactory.getLogger(TopicComparer.class);
 
     private final String bootstrapServer;
 
@@ -185,7 +190,7 @@ public class TopicComparer {
         this.bootstrapServer = bootstrapServer;
     }
 
-    public ComparisonResult compare(Collection<ExpectedTopicConfiguration> expectedTopicConfiguration) {
+    public ComparisonResult compare(Collection<ExpectedTopicConfiguration> expecteds) {
 
         ComparisonResult.ComparisonResultBuilder resultBuilder = new ComparisonResult.ComparisonResultBuilder();
 
@@ -193,40 +198,52 @@ public class TopicComparer {
         props.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServer);
 
         try (AdminClient adminClient = AdminClient.create(props)) {
-            List<String> topicNames = expectedTopicConfiguration.stream()
-                    .map((expectedTopic) -> expectedTopic.getTopicName()).collect(toList());
+            // Names of topics in the configs
+            Collection<String> expectedTopicNames = expecteds.stream().map(es -> es.getTopicName()).collect(toList());
+            // Describe the topics from the configs...
+            Map<String, TopicDescription> lookups;
 
-            DescribeTopicsResult describeTopicsResult = adminClient.describeTopics(topicNames);
+            try {
+                lookups = adminClient.describeTopics(expectedTopicNames).all().get();
+            } catch (ExecutionException e) {
+                resultBuilder.addMissingTopics(expectedTopicNames);
+                lookups = Collections.emptyMap();
+            } catch (InterruptedException e) {
+                throw new EvaluationException("Exception when retrieving Kafka topic info from cluster.", e);
+            }
 
-            Map<String, TopicDescription> topicDescriptions = describeTopicsResult.values()
-                    .entrySet().stream().flatMap(desc -> {
-                        try {
-                            TopicDescription topicDescription = desc.getValue().get();
-                            return Collections.singletonList(topicDescription).stream();
-                        } catch (ExecutionException e) {
-                            resultBuilder.addMissingTopic(desc.getKey());
-                            return Collections.<TopicDescription>emptySet().stream();
-                        } catch (InterruptedException e) {
-                            throw new EvaluationException("Exception during adminClient.describeTopics", e);
-                        }
-                    }).collect(toMap(i -> i.name(), i -> i));
+            final Map<String, TopicDescription> describeTopicsResult = lookups;
 
-            expectedTopicConfiguration.stream()
-                    .filter(exp -> topicDescriptions.containsKey(exp.getTopicName()))
-                    .forEach(exp -> {
-                        TopicDescription topicDescription = topicDescriptions.get(exp.getTopicName());
+            // Checking for Topic Existence...
+            // These are the topics that do not exist
+            List<String> topicsThatDoNotExist = checkExists(expectedTopicNames, describeTopicsResult)
+                    .entrySet().stream().filter(x -> x.getValue() == false).map(e -> e.getKey()).collect(toList());
+            if (topicsThatDoNotExist.isEmpty()) {
+                logger.info("There were no topics defined in the config that did not exist in the cluster.");
+            } else {
+                logger.warn("Topics {} do not exist in the cluster.",
+                        topicsThatDoNotExist.stream().collect(Collectors.joining(",", "(", ")")));
 
-                        if (exp.getPartitions().isSpecified() && topicDescription.partitions().size() != exp.getPartitions().count()) {
-                            resultBuilder.addMismatchingPartitionCount(exp.getTopicName(), exp.getPartitions().count(), topicDescription.partitions().size());
-                        }
-                        int repflicationFactor = topicDescription.partitions().stream().findFirst().get().replicas().size();
-                        if (exp.getReplicationFactor().isSpecified() && repflicationFactor != exp.getReplicationFactor().count()) {
-                            resultBuilder.addMismatchingReplicationFactor(exp.getTopicName(), exp.getReplicationFactor().count(), repflicationFactor);
-                        }
-                    });
+                // Of the topics that do not exist, here are the ones we need that are NOT configured for us to create
+                expecteds.stream()
+                        .filter(es -> topicsThatDoNotExist.contains(es))
+                        .filter(es -> !es.getCreateIfNotExists())
+                        .forEach(t -> resultBuilder.addMissingTopic(t.getTopicName()));
+
+                // Of the topics that do not exist, these are the ones we should create
+                List<ExpectedTopicConfiguration> topicsToCreate = expecteds.stream()
+                        .filter(es -> topicsThatDoNotExist.contains(es))
+                        .filter(es -> es.getCreateIfNotExists()).collect(toList());
+                if (!topicsToCreate.isEmpty()) {
+                    logger.debug("Creating topics {} in the cluster.",
+                            topicsToCreate.stream().map(ts -> ts.getTopicName())
+                                    .collect(Collectors.joining(",", "(", ")")));
+                    createTopics(adminClient, topicsToCreate);
+                }
+            }
 
             Map<String, Config> topicConfigs = adminClient
-                    .describeConfigs(topicNames.stream()
+                    .describeConfigs(expectedTopicNames.stream()
                             .map(this::topicNameToResource)
                             .collect(toList())
                     ).values().entrySet().stream().flatMap(tc -> {
@@ -239,20 +256,73 @@ public class TopicComparer {
                         return res.entrySet().stream();
                     }).collect(toMap(i -> i.getKey(), i -> i.getValue()));
 
-            expectedTopicConfiguration.stream().forEach(exp -> {
-                Config config = topicConfigs.get(exp.getTopicName());
-                exp.getProps().entrySet().forEach(prop -> {
-                    ConfigEntry entry = config.get(prop.getKey());
+            // Of the topics that do exist, check the configuration against what we expect
+            expecteds.stream()
+                    .filter(exp -> describeTopicsResult.containsKey(exp.getTopicName()))
+                    .forEach(exp -> {
+                        TopicDescription topicDescription = describeTopicsResult.get(exp.getTopicName());
+                        if (!checkPartitions(exp.getPartitions(), topicDescription.partitions())) {
+                            resultBuilder.addMismatchingPartitionCount(exp.getTopicName(), exp.getPartitions().count(), topicDescription.partitions().size());
+                        }
 
-                    if (entry == null) {
-                        resultBuilder.addMismatchingConfiguration(exp.getTopicName(), prop.getKey(), prop.getValue(), null);
-                    } else if (!prop.getValue().equals(entry.value())) {
-                        resultBuilder.addMismatchingConfiguration(exp.getTopicName(), prop.getKey(), prop.getValue(), entry.value());
-                    }
-                });
-            });
-            return resultBuilder.build();
+                        int replicationFactor = topicDescription.partitions().stream().findFirst().get().replicas().size();
+                        if (!checkReplicationFactor(exp.getReplicationFactor(), replicationFactor)) {
+                            resultBuilder.addMismatchingReplicationFactor(exp.getTopicName(), exp.getReplicationFactor().count(), replicationFactor);
+                        }
+
+                        Config config = topicConfigs.get(exp.getTopicName());
+                        exp.getProps().entrySet().forEach(prop -> {
+                            ConfigEntry entry = config.get(prop.getKey());
+                            if (entry == null) {
+                                resultBuilder.addMismatchingConfiguration(exp.getTopicName(), prop.getKey(), prop.getValue(), null);
+                            } else if (!prop.getValue().equals(entry.value())) {
+                                resultBuilder.addMismatchingConfiguration(exp.getTopicName(), prop.getKey(), prop.getValue(), entry.value());
+                            }
+                        });
+                    });
         }
+
+        return resultBuilder.build();
+    }
+
+    protected boolean checkPartitions(PartitionCount expectedCount, List<TopicPartitionInfo> partitionInfo) {
+        if (expectedCount.isSpecified()) {
+            return expectedCount.count() == partitionInfo.size();
+        }
+        return true;
+    }
+
+    protected boolean checkReplicationFactor(ReplicationFactor expected, int actualReplFactor) {
+        if (expected.isSpecified()) {
+            return expected.count() == actualReplFactor;
+        }
+        return true;
+    }
+
+    /**
+     * Create topics as configured.
+     *
+     * @param client
+     * @param expecteds
+     * @return
+     */
+    protected CreateTopicsResult createTopics(AdminClient client, List<ExpectedTopicConfiguration> expecteds) {
+        return client.createTopics(expecteds.stream().map(es -> {
+            NewTopic t = new NewTopic(es.getTopicName(), es.getPartitions().count(), (short) es.getReplicationFactor().count());
+            t.configs(es.getProps());
+            return t;
+        }).collect(toList()));
+    }
+
+    /**
+     * Do the expected topics exist?
+     *
+     * @param expectedTopicNames
+     * @param actuals
+     * @return
+     */
+    protected Map<String, Boolean> checkExists(Collection<String> expectedTopicNames, Map<String, TopicDescription> actuals) {
+        return expectedTopicNames.stream().collect(Collectors.toMap(es -> es, es -> actuals.containsKey(es)));
     }
 
     private ConfigResource topicNameToResource(String topicName) {
