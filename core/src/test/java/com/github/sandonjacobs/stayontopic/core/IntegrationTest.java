@@ -176,7 +176,10 @@ import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.junit.jupiter.api.*;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -227,16 +230,12 @@ public class IntegrationTest {
         @Test
         public void topic_not_exists(){
 
-            ExpectedTopicConfiguration doesNotExist =
+            ExpectedTopicConfiguration expected =
                     ExpectedTopicConfiguration.builder()
                             .topicName("nonexisting_topic")
                             .build();
-            ExpectedTopicConfiguration exists =
-                    ExpectedTopicConfiguration.builder()
-                            .topicName("test_topic")
-                            .build();
 
-            ComparisonResult result = unitUnderTest.compare(Arrays.asList(doesNotExist, exists));
+            ComparisonResult result = unitUnderTest.compare(Collections.singleton(expected));
 
             assertFalse(result.ok());
         }

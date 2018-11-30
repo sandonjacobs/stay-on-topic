@@ -274,11 +274,6 @@ public class ComparisonResult {
             return this;
         }
 
-        public ComparisonResultBuilder addMissingTopics(Collection<String> missing) {
-            missingTopics.addAll(missing);
-            return this;
-        }
-
         public ComparisonResultBuilder addMismatchingReplicationFactor(String topicName, int expected, int actual) {
             this.mismatchingReplicationFactor.put(topicName, new Comparison<>(topicName, "replication factor",  actual, expected));
             return this;
