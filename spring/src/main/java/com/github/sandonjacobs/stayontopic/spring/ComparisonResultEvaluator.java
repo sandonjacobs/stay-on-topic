@@ -168,41 +168,85 @@
 package com.github.sandonjacobs.stayontopic.spring;
 
 import com.github.sandonjacobs.stayontopic.core.ComparisonResult;
+import com.github.sandonjacobs.stayontopic.core.ExpectedTopicConfiguration;
 import com.github.sandonjacobs.stayontopic.core.MismatchedTopicConfigException;
+import com.github.sandonjacobs.stayontopic.core.TopicCreator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 
 import javax.annotation.PostConstruct;
+import java.util.Arrays;
+import java.util.Collection;
 
 
 public class ComparisonResultEvaluator {
 
     private static final Logger LOG = LoggerFactory.getLogger(ComparisonResultEvaluator.class);
 
+    private static final String _HDR_TOPIC_MISSING = "Topic Missing";
+    private static final String _HDR_PARTITION_MISMATCH = "Partition Count Mismatch";
+    private static final String _HDR_REPL_FACTOR_MISMATCH = "Replication Factor Mismatch";
+    private static final String _HDR_TOPIC_CONFIG_MISMATCH = "Topic Config Mismatch";
+
     @Value("${stay-on-topic.fail-on-mismatch:true}")
     private boolean failOnMismatch;
 
-    private final ComparisonResult result;
+    @Value("${stay-on-topic.create-missing-topics:false}")
+    private boolean createMissingTopics;
 
+    private final ComparisonResult comparisonResult;
 
-    public ComparisonResultEvaluator(ComparisonResult result) {
-        this.result = result;
+    private TopicCreator topicCreator;
+
+    private Collection<ExpectedTopicConfiguration> expectedTopicConfiguration;
+
+    public ComparisonResultEvaluator(ComparisonResult comparisonResult, String bootstrapServers, Collection<ExpectedTopicConfiguration> expectedTopicConfiguration) {
+        this.comparisonResult = comparisonResult;
+        this.topicCreator = new TopicCreator(bootstrapServers);
+        this.expectedTopicConfiguration = expectedTopicConfiguration;
     }
 
-
     @PostConstruct
-    public void evaluate(){
-        if(result.ok()){
-            //nothing to do
+    public void evaluate() {
+        if (comparisonResult.ok()) {
+            LOG.info("All topics existed and were configured as expected.");
         } else {
-
-            if(failOnMismatch){
-                throw new MismatchedTopicConfigException(result);
-            } else {
-                LOG.error("Kafka Topic configuration mismatched: " + result.toString());
+            LOG.warn("Configuration Mismatch Detected!");
+            if (!comparisonResult.getMismatchingPartitionCount().isEmpty()) {
+                comparisonResult.getMismatchingPartitionCount().forEach( (k, v) -> {
+                    LOG.error("{}: topic {}, expected {}, actual {}", _HDR_PARTITION_MISMATCH, v.getTopicName(), v.getExpectedValue(), v.getActualValue());
+                });
+            }
+            if (!comparisonResult.getMismatchingReplicationFactor().isEmpty()) {
+                comparisonResult.getMismatchingReplicationFactor().forEach( (k, v) -> {
+                    LOG.error("{}: topic {}, expected {}, actual {}", _HDR_REPL_FACTOR_MISMATCH, v.getTopicName(), v.getExpectedValue(), v.getActualValue());
+                });
+            }
+            if (!comparisonResult.getMismatchingConfiguration().isEmpty()) {
+                comparisonResult.getMismatchingConfiguration().forEach( (k, v) -> {
+                    LOG.error("{}: topic {}, config {}", _HDR_TOPIC_CONFIG_MISMATCH, k, Arrays.toString(v.toArray()));
+                });
             }
 
+            if (failOnMismatch) {
+                if (!comparisonResult.getMissingTopics().isEmpty()) {
+                    if (createMissingTopics) {
+                        LOG.info("TODO: Start Creating Topics Here...");  // TODO topic creation goes here...
+                        topicCreator.createTopics(comparisonResult.getMissingTopics(), expectedTopicConfiguration);
+                        return;
+                    }
+                    else {
+                        comparisonResult.getMissingTopics().forEach(r -> LOG.error("{}, topic {}", _HDR_TOPIC_MISSING, r));
+                        throw new MismatchedTopicConfigException(comparisonResult);
+                    }
+                }
+                else {
+                    throw new MismatchedTopicConfigException(comparisonResult);
+                }
+            } else {
+                LOG.error("Kafka Topic configuration mismatched: " + comparisonResult.toString());
+            }
         }
     }
 }

@@ -187,9 +187,11 @@ public class StayOnTopicConfiguration {
     @Value("${stay-on-topic.config-file:stay-on-topic.yml}")
     private String configFile;
 
+    private Collection<ExpectedTopicConfiguration> expectedConfig;
+
     @Bean
     public ComparisonResult stayOnTopicComparisonResult(){
-        Collection<ExpectedTopicConfiguration> expectedConfig = configParser.parseTopicConfiguration(configFile);
+        expectedConfig = configParser.parseTopicConfiguration(configFile);
         ComparisonResult result = new TopicComparer(bootstrapServers).compare(expectedConfig);
         return result;
     }
@@ -200,8 +202,8 @@ public class StayOnTopicConfiguration {
 
 
     @Bean
-    public ComparisonResultEvaluator clubTopicanaEvaluator(){
-        return new ComparisonResultEvaluator(stayOnTopicComparisonResult());
+    public ComparisonResultEvaluator comparisonResultEvaluator(){
+        return new ComparisonResultEvaluator(stayOnTopicComparisonResult(), bootstrapServers, expectedConfig);
     }
 
 

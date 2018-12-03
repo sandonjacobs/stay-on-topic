@@ -60,6 +60,9 @@ atlassian-ide-plugin.xml
 .project
 .settings
 .metadata
+.apt_generated
+.factorypath
+.sts4-cache
 
 # NetBeans specific files/directories
 .nbattrs

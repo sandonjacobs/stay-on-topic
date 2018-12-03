@@ -198,6 +198,8 @@ public class TopicComparer {
 
             DescribeTopicsResult describeTopicsResult = adminClient.describeTopics(topicNames);
 
+            List<String> missingTopics = new ArrayList<>();
+
             Map<String, TopicDescription> topicDescriptions = describeTopicsResult.values()
                     .entrySet().stream().flatMap(desc -> {
                         try {
@@ -205,6 +207,7 @@ public class TopicComparer {
                             return Collections.singletonList(topicDescription).stream();
                         } catch (ExecutionException e) {
                             resultBuilder.addMissingTopic(desc.getKey());
+                            missingTopics.add(desc.getKey());
                             return Collections.<TopicDescription>emptySet().stream();
                         } catch (InterruptedException e) {
                             throw new EvaluationException("Exception during adminClient.describeTopics", e);
@@ -226,7 +229,7 @@ public class TopicComparer {
                     });
 
             Map<String, Config> topicConfigs = adminClient
-                    .describeConfigs(topicNames.stream()
+                    .describeConfigs(topicNames.stream().filter(t -> !missingTopics.contains(t))
                             .map(this::topicNameToResource)
                             .collect(toList())
                     ).values().entrySet().stream().flatMap(tc -> {
@@ -239,11 +242,10 @@ public class TopicComparer {
                         return res.entrySet().stream();
                     }).collect(toMap(i -> i.getKey(), i -> i.getValue()));
 
-            expectedTopicConfiguration.stream().forEach(exp -> {
+            expectedTopicConfiguration.stream().filter(t -> !missingTopics.contains(t.getTopicName())).forEach(exp -> {
                 Config config = topicConfigs.get(exp.getTopicName());
                 exp.getProps().entrySet().forEach(prop -> {
                     ConfigEntry entry = config.get(prop.getKey());
-
                     if (entry == null) {
                         resultBuilder.addMismatchingConfiguration(exp.getTopicName(), prop.getKey(), prop.getValue(), null);
                     } else if (!prop.getValue().equals(entry.value())) {
