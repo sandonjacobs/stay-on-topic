@@ -206,18 +206,15 @@ public class MatchingConfigIntegrationTest {
             topics.add(testTopic2);
 
             ac.createTopics(topics).all().get();
-
-
         }
 
         System.setProperty("stay-on-topic.bootstrap-servers", bootstrapServers);
         System.setProperty("stay-on-topic.fail-on-mismatch", "true");
+        System.setProperty("stay-on-topic.create-missing-topics", "false");
     }
-
 
     @Test
     public void run() {
-
 
     }
 }
