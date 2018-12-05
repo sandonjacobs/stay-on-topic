@@ -209,6 +209,7 @@ public class MatchingConfigIntegrationTest {
         }
 
         System.setProperty("stay-on-topic.bootstrap-servers", bootstrapServers);
+        System.setProperty("stay-on-topic.config-file", "stay-on-topic-match.yml");
         System.setProperty("stay-on-topic.fail-on-mismatch", "true");
         System.setProperty("stay-on-topic.create-missing-topics", "false");
     }
